@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>CazMachine</title>
+<style>
+:root{--bg:#120a1f;--card:#1f1433;--ink:#f4eefc;--mut:#a595c4;--gold:#ffc940;--acc:#8b5cf6;--ok:#34d399;--bad:#f87171;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.top{position:sticky;top:env(safe-area-inset-top,0px);display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0d0716;border-bottom:1px solid #2d1f4a;z-index:5}
+.coins{font-weight:800;color:var(--gold);font-size:18px}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 16px;background:var(--acc);color:#fff;font-weight:700}
+button:disabled{opacity:.4}
+button.alt{background:#2d1f4a}
+.wrap{padding:16px;max-width:480px;margin:auto}
+h2{margin:8px 0 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:var(--card);border-radius:16px;padding:18px 10px;text-align:center;border:1px solid #2d1f4a;cursor:pointer}
+.tile .e{font-size:38px}.tile div:last-child{font-weight:700;margin-top:6px}
+.bet{display:flex;gap:8px;align-items:center;margin:12px 0;flex-wrap:wrap}
+.bet button{padding:8px 14px;background:#2d1f4a}.bet button.on{background:var(--gold);color:#000}
+.msg{min-height:26px;text-align:center;font-weight:700;margin:10px 0}
+.win{color:var(--ok)}.lose{color:var(--bad)}
+.reels{display:flex;gap:10px;justify-content:center;margin:18px 0}
+.reel{width:88px;height:100px;background:#0d0716;border:2px solid var(--gold);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:52px}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+.big{font-size:64px;text-align:center;margin:16px 0;min-height:76px}
+.hand{font-size:30px;text-align:center;min-height:44px;letter-spacing:4px}
+.lbl{color:var(--mut);font-size:13px;text-align:center}
+.items{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{background:var(--card);border-radius:14px;padding:12px;text-align:center;border:1px solid #2d1f4a}
+.item .e{font-size:40px}.item.own{border-color:var(--ok)}.item.lock .e{filter:grayscale(1) brightness(.4)}
+.r-commun{color:#9ca3af}.r-rare{color:#60a5fa}.r-epique{color:#c084fc}.r-legendaire{color:var(--gold)}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+body{background:radial-gradient(circle at 50% 0,#2a1250,#120a1f 60%)}
+.hero{text-align:center;margin:4px 0 18px}.hero canvas{width:230px;max-width:70%;filter:drop-shadow(0 0 22px #8b5cf688)}
+.title{font-size:34px;font-weight:900;letter-spacing:3px;background:linear-gradient(90deg,#ffe28a,#ffc940,#f59e0b);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:6px}
+.sub{color:var(--mut);font-size:11px;letter-spacing:4px;margin-top:2px}
+.tile{box-shadow:0 6px 18px #0008;border:1px solid #ffffff22;transition:transform .1s}.tile:active{transform:scale(.96)}
+.t1{background:linear-gradient(145deg,#7c3aed,#3b1d7a)}.t2{background:linear-gradient(145deg,#c2410c,#6b1d05)}.t3{background:linear-gradient(145deg,#15803d,#0a3d20)}.t4{background:linear-gradient(145deg,#be185d,#5c0b30)}.t5{background:linear-gradient(145deg,#d4a017,#7a5a05)}
+.pcard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid #ffc94044;border-radius:16px;padding:10px 14px;margin-bottom:12px;cursor:pointer}.reels{display:flex;gap:8px;justify-content:center;margin:14px 0;padding:14px;background:linear-gradient(#2a1250,#120a1f);border:3px solid var(--gold);border-radius:18px;position:relative;box-shadow:0 0 24px #ffc94044}
+.rl{width:84px;background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.rl span{height:68px;display:flex;align-items:center;justify-content:center;font-size:42px;background:linear-gradient(#d1d5db,#fff 30%,#fff 70%,#d1d5db)}
+.rl span:nth-child(2){background:#fff8db}
+.pl{position:absolute;left:8px;right:8px;top:50%;height:3px;margin-top:-1px;background:#ef4444;opacity:.75;pointer-events:none}
+.rl.hit span:nth-child(2){animation:fl .4s 5}@keyframes fl{50%{background:#ffc940}}
+.hand{display:flex;justify-content:center;flex-wrap:wrap;gap:4px;min-height:88px;font-size:16px;letter-spacing:0;margin:6px 0}
+.bjc{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:54px;height:78px;background:#fff;color:#111;border-radius:8px;font-size:19px;box-shadow:0 3px 8px #0008;animation:dl .4s ease-out}.bjc.red{color:#dc2626}.bjc i{font-style:normal;font-size:24px}.bjc.back{background:repeating-linear-gradient(45deg,#7c3aed,#7c3aed 6px,#4c1d95 6px,#4c1d95 12px);border:2px solid #fff}@keyframes dl{from{transform:translate(110px,-110px) rotate(25deg) scale(.7);opacity:0}}
+.t6{background:linear-gradient(145deg,#0f766e,#083f3a)}</style></head><body>
+<div class="top"><button class="alt" id="back" style="visibility:hidden;padding:8px 12px">←</button><div>🎰 CazMachine</div><div class="coins" id="coins">0 🪙</div></div>
+<div class="wrap" id="app"></div>
+<script>
+const $=s=>document.querySelector(s),app=$('#app');
+const ITEMS=[
+{id:'a',e:'🪙',n:'Pièce d\'or',p:100,r:'commun'},{id:'b',e:'🎲',n:'Dés porte-bonheur',p:250,r:'commun'},
+{id:'c',e:'🃏',n:'Joker',p:600,r:'rare'},{id:'d',e:'🍀',n:'Trèfle magique',p:900,r:'rare'},
+{id:'e',e:'👑',n:'Couronne royale',p:2000,r:'epique'},{id:'f',e:'🔮',n:'Boule de cristal',p:3000,r:'epique'},
+{id:'g',e:'💎',n:'Diamant pur',p:6000,r:'legendaire'},{id:'h',e:'🐉',n:'Dragon d\'or',p:10000,r:'legendaire'}];
+let S={coins:1000,own:[],bet:50,name:'',av:'😎',st:{played:0,wagered:0,best:0}};
+let TGU=null;try{const tg=window.Telegram&&window.Telegram.WebApp;if(tg){tg.ready();tg.expand();TGU=(tg.initDataUnsafe&&tg.initDataUnsafe.user)||null}}catch(e){}
+const KEY=TGU?'rc_'+TGU.id:'rc';
+try{const t=localStorage.getItem(KEY);if(t)S=Object.assign(S,JSON.parse(t))}catch(e){}
+function clean(t){return String(t||'').replace(/[<>"'&`]/g,'').trim().slice(0,16)}
+if(!S.name)S.name=clean(TGU&&(TGU.first_name||TGU.username))||'Joueur'+(Math.random()*9000+1000|0);
+const CS=(()=>{try{const t=window.Telegram&&window.Telegram.WebApp;return t&&t.CloudStorage&&t.isVersionAtLeast('6.9')?t.CloudStorage:null}catch(e){return null}})();
+let csReady=!CS,csT=0,psT=0;
+function csPush(){if(!CS||!csReady)return;try{const c=Object.assign({},S);delete c.photo;CS.setItem('cm',JSON.stringify(c))}catch(e){}}
+function save(){S.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}const el=$('#coins');if(el)el.textContent=S.coins.toLocaleString('fr-FR')+' 🪙';if(CS){clearTimeout(csT);csT=setTimeout(csPush,600)}if(initD()){clearTimeout(psT);psT=setTimeout(pushScore,6000)}}
+addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(csT);csPush()}});addEventListener('pagehide',()=>{clearTimeout(csT);csPush()});
+if(CS){setTimeout(()=>{csReady=true},4000);try{CS.getItem('cm',(err,v)=>{try{if(!err&&v){const c=JSON.parse(v);if((c.ts||0)>(S.ts||0)){const ph=S.photo;S=Object.assign(S,c);S.photo=ph;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}const el=$('#coins');if(el)el.textContent=S.coins.toLocaleString('fr-FR')+' 🪙';if(cur=='menu'||cur=='profile')go(cur)}}}catch(e){}csReady=true})}catch(e){csReady=true}}
+function msg(t,ok){const m=$('#msg');if(m){m.textContent=t;m.className='msg '+(ok===true?'win':ok===false?'lose':'')}}
+function betBar(){return `<div class="bet"><span>Mise :</span>${[10,50,100,500].map(v=>`<button class="${S.bet==v?'on':''}" onclick="setBet(${v})">${v}</button>`).join('')}</div>`}
+function canBet(){if(S.coins<S.bet){msg('Pas assez de pièces !',false);return false}return true}
+function pay(w){S.coins+=w;if(w<0){S.st.played++;S.st.wagered-=w}else if(w>S.st.best)S.st.best=w;save()}
+let cur='menu';
+function go(v){cur=v;$('#back').style.visibility=v=='menu'?'hidden':'visible';V[v]();save()}
+$('#back').onclick=()=>{if(busy||spinning||bjBusy||sbBusy)return;bets={};go('menu')};
+const V={
+menu(){app.innerHTML=`<div class="hero"><canvas id="mh" width="300" height="300"></canvas><div class="title">CazMachine</div><div class="sub">CASINO · PARIS · POKER</div></div><div class="pcard" onclick="go('profile')">${av(44)}<div style="flex:1;text-align:left"><b>${S.name}</b><div class="lbl" style="text-align:left">Niv. ${lvl()} · ${ttl()}</div></div><span style="color:var(--gold)">Profil ›</span></div>
+<div class="grid">
+<div class="tile t1" onclick="go('sport')"><div class="e">⚽</div><div>Paris sportifs</div></div>
+<div class="tile t2" onclick="go('roulette')"><div class="e">🎡</div><div>Roulette</div></div>
+<div class="tile t3" onclick="go('bj')"><div class="e">♠️</div><div>Blackjack</div></div>
+<div class="tile t4" onclick="go('poker')"><div class="e">🃏</div><div>Joker Poker</div></div>
+<div class="tile t5" onclick="go('shop')"><div class="e">🛒</div><div>Boutique (${S.own.length}/${ITEMS.length})</div></div>
+<div class="tile t6" onclick="go('rank')"><div class="e">🏆</div><div>Classement mondial</div></div></div>
+<p class="lbl">Pièces virtuelles uniquement — aucun argent réel.</p>
+<div class="row"><button class="alt" onclick="if(S.coins<50){S.coins+=500;save();go('menu')}else alert('Bonus dispo quand tu as moins de 50 🪙')">🎁 Bonus gratuit</button><button onclick="go('buy')" style="background:linear-gradient(#f59e0b,#d97706)">⭐ Acheter des jetons</button></div>`;menuLoop()},
+sport(){if(!SB.length)sbNew();renderSB()},
+rank(){app.innerHTML=`<h2>🏆 Classement mondial</h2><div id="rk"><p class="lbl">Chargement…</p></div>`;loadRank()},
+roulette(){app.innerHTML=`<h2>🎡 Roulette européenne</h2><canvas id="wh" width="300" height="300" style="display:block;margin:0 auto;max-width:100%"></canvas><div class="msg" id="msg">Place tes mises</div>${betBar()}<div id="tb"></div><div class="row"><button id="go" onclick="roul()">Lancer</button><button class="alt" onclick="if(!busy){bets={};tbl()}">Effacer</button></div>`;tbl();drawWheel()},
+bj(){app.innerHTML=`<h2>🃏 Blackjack</h2><div class="lbl">Croupier <span id="ds"></span></div><div class="hand" id="dh"></div><div class="lbl">Toi <span id="ps"></span></div><div class="hand" id="ph"></div><div class="msg" id="msg">Choisis ta mise puis distribue</div>${betBar()}<div class="row"><button id="deal" onclick="bjDeal()">Distribuer</button><button id="hit" onclick="bjHit()" disabled>Tirer</button><button id="std" onclick="bjStand()" disabled>Rester</button></div>`;bjOn=false},
+poker(){pkPh=0;pkH=[1,2,3,4,5].map(()=>({b:1}));app.innerHTML=`<h2>🃏 Joker Poker</h2><div id="pk" style="display:flex;gap:2%;margin:14px 0 28px"></div><div class="msg" id="msg">Le Joker est sauvage !</div>${betBar()}<div class="row"><button id="pkb" onclick="pkAct()">Distribuer</button></div><div style="font-size:12px;color:var(--mut);margin-top:12px;max-width:320px;margin-inline:auto">${[11,10,9,8,7,6,5,4,3,2,1].map(i=>`<div style="display:flex;justify-content:space-between;padding:2px 0"><span>${NM[i]}</span><span>×${MU[i]}</span></div>`).join('')}</div>`;pkShow()},
+profile(){const L=lvl(),a=(L-1)*(L-1)*100,b=L*L*100,pc=Math.min(100,(S.st.wagered-a)/(b-a)*100|0),T=(n,v)=>`<div class="item"><div class="lbl">${n}</div><div style="font-weight:800;font-size:18px;color:var(--gold)">${v}</div></div>`;
+app.innerHTML=`<div style="text-align:center;margin-top:6px">${av(84)}<div style="margin:10px 0 4px"><input id="nm" value="${S.name}" maxlength="16" onchange="S.name=clean(this.value)||S.name;save();go('profile')" style="background:#0d0716;border:1px solid #2d1f4a;color:var(--ink);border-radius:10px;padding:8px 12px;font:inherit;font-weight:800;font-size:20px;text-align:center;width:80%"></div>
+<div class="lbl">Niveau ${L} · ${ttl()}</div><div style="height:8px;background:#2d1f4a;border-radius:6px;margin:8px auto;width:80%"><div style="height:8px;width:${pc}%;background:var(--gold);border-radius:6px"></div></div><div class="lbl">${b-S.st.wagered} 🪙 misés avant le niveau ${L+1}</div></div>
+<div class="row" style="margin-top:14px"><label style="cursor:pointer;padding:9px 14px;border-radius:12px;background:var(--acc);font-weight:700;font-size:14px">📷 ${S.photo?'Changer':'Ajouter'} ma photo<input type="file" accept="image/*" hidden onchange="upPhoto(this)"></label>${S.photo?'<button class="alt" style="font-size:13px;padding:9px 12px" onclick="delPhoto()">Retirer</button>':''}</div>
+${S.photo||(TGU&&TGU.photo_url)?'':`<div class="row" style="margin-top:10px">${['😎','🤠','👑','🦊','🐯','🐉','💎','🍀'].map(e=>`<button class="alt" style="padding:6px 10px;font-size:22px;${S.av==e?'outline:2px solid var(--gold)':''}" onclick="setAv('${e}')">${e}</button>`).join('')}</div>`}
+<div class="items" style="margin-top:16px">${T('Pièces',S.coins.toLocaleString('fr-FR')+' 🪙')}${T('Parties jouées',S.st.played)}${T('Total misé',S.st.wagered.toLocaleString('fr-FR'))}${T('Plus gros gain',S.st.best.toLocaleString('fr-FR')+' 🪙')}${T('Collection',S.own.length+'/'+ITEMS.length)}${T('Niveau',L)}</div>
+<div class="row" style="font-size:30px;margin-top:14px">${ITEMS.filter(i=>S.own.includes(i.id)).map(i=>i.e).join(' ')||'<span class="lbl">Ta collection est vide — va à la boutique !</span>'}</div>
+<div class="row"><button class="alt" style="font-size:12px;padding:8px 12px" onclick="resetP()">Réinitialiser mon profil</button></div>`},
+buy(){const P=[['p1',25,2500,'👝'],['p2',100,12000,'💰'],['p3',500,70000,'🏆']];app.innerHTML=`<h2>⭐ Acheter des jetons</h2><div class="items" style="grid-template-columns:1fr">${P.map(p=>`<div class="item" style="display:flex;align-items:center;gap:14px;text-align:left"><div class="e">${p[3]}</div><div style="flex:1"><b>${p[2].toLocaleString('fr-FR')} 🪙</b></div><button onclick="buyPack('${p[0]}')">${p[1]} ⭐</button></div>`).join('')}</div><p class="lbl" style="margin-top:14px">Jetons virtuels : aucune valeur monétaire, non échangeables, non remboursables en argent. Réservé aux 18 ans et plus. Un problème d'achat ? Envoie /paysupport au bot.</p>`},
+shop(){app.innerHTML=`<h2>🛒 Boutique & Collection</h2><div class="items">${ITEMS.map(i=>{const o=S.own.includes(i.id);return `<div class="item ${o?'own':'lock'}"><div class="e">${i.e}</div><div>${i.n}</div><div class="lbl r-${i.r}">${i.r}</div>${o?'<div class="win">✔ Possédé</div>':`<button style="margin-top:6px;padding:8px 12px" onclick="buy('${i.id}')">${i.p.toLocaleString('fr-FR')} 🪙</button>`}</div>`}).join('')}</div>${S.own.length==ITEMS.length?'<p class="msg win">🏆 Collection complète !</p>':''}`}};
+function buy(id){const i=ITEMS.find(x=>x.id==id);if(S.coins<i.p){alert('Pas assez de pièces !');return}S.coins-=i.p;S.own.push(id);go('shop')}
+let spinning=false;
+const TEAMS=[['FC Diamant',84],['Dragons United',80],['Royal Club',76],['Étoile Rouge',72],['AS Trèfle',68],["Lions d'Or",64],['Olympique Joker',60],['Real Casino',56]];
+let SB=[],sbPick={},sbBusy=false;
+function pois(l,k){let p=Math.exp(-l);for(let i=1;i<=k;i++)p*=l/i;return p}
+function samp(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
+function probs(lh,la){let h=0,d=0,a=0;for(let i=0;i<=10;i++)for(let j=0;j<=10;j++){const p=pois(lh,i)*pois(la,j);if(i>j)h+=p;else if(i==j)d+=p;else a+=p}const t=h+d+a;return[h/t,d/t,a/t]}
+function sbNew(){const t=TEAMS.slice().sort(()=>Math.random()-.5);SB=[];sbPick={};
+for(let i=0;i<8;i+=2){const h=t[i],a=t[i+1],lh=1.3*Math.pow(h[1]/a[1],1.2)*1.1,la=1.3*Math.pow(a[1]/h[1],1.2)*.9;
+SB.push({h,a,lh,la,o:probs(lh,la).map(p=>Math.max(1.05,Math.round(.92/p*100)/100)),done:false})}}
+function sbSel(i,k){if(sbBusy||SB[i].done)return;if(sbPick[i]===k)delete sbPick[i];else sbPick[i]=k;renderSB()}
+function sbTot(){const ks=Object.keys(sbPick);return{n:ks.length,c:ks.reduce((a,i)=>a*SB[i].o[sbPick[i]],1)}}
+function slip(){const el=$('#slip');if(!el)return;const t=sbTot();el.innerHTML=t.n?`<div class="lbl">${t.n>1?'Combiné ('+t.n+' matchs)':'Pari simple'} · cote ${t.c.toFixed(2)} · gain possible <b style="color:var(--gold)">${Math.floor(S.bet*t.c).toLocaleString('fr-FR')} 🪙</b></div>`:'<div class="lbl">Choisis un ou plusieurs résultats</div>'}
+function renderSB(){const done=SB.some(m=>m.done);
+app.innerHTML=`<h2>⚽ Paris sportifs</h2><div class="lbl" style="text-align:left">CazLeague — matchs virtuels simulés</div>${SB.map((m,i)=>`<div class="item" style="margin:10px 0"><div style="font-weight:800">${m.h[0]} <span style="color:var(--mut);font-weight:400">vs</span> ${m.a[0]}</div><div id="sc${i}" style="font-size:22px;font-weight:900;color:var(--gold);min-height:32px">${m.done?m.gh+' - '+m.ga+' (FT)':''}</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${[0,1,2].map(k=>{let st='';if(m.done){if(k==m.r)st+='outline:2px solid var(--ok);';if(sbPick[i]===k)st+=k==m.r?'background:var(--ok);':'background:var(--bad);'}else if(sbPick[i]===k)st='background:var(--gold);color:#000;';return `<button class="alt" style="padding:8px 4px;${st}" onclick="sbSel(${i},${k})"><div style="font-size:11px;opacity:.75">${['1','N','2'][k]}</div>${m.o[k].toFixed(2)}</button>`}).join('')}</div></div>`).join('')}<div class="msg" id="msg"></div>${betBar()}<div id="slip"></div><div class="row"><button id="sbgo" onclick="${done?'sbNext()':'sbGo()'}">${done?'Nouveaux matchs':'Valider le pari'}</button></div><p class="lbl">Jetons virtuels sans valeur monétaire.</p>`;slip()}
+function sbNext(){if(sbBusy)return;sbNew();renderSB()}
+async function sbGo(){if(sbBusy)return;const ks=Object.keys(sbPick);if(!ks.length){msg('Choisis au moins un résultat',false);return}if(!canBet())return;
+pay(-S.bet);const stake=S.bet,tc=sbTot().c;sbBusy=true;$('#sbgo').disabled=true;msg("Coup d'envoi !");
+SB.forEach(m=>{m.gh=samp(m.lh);m.ga=samp(m.la);m.ev=[];for(let g=0;g<m.gh;g++)m.ev.push([1+Math.random()*89|0,'h']);for(let g=0;g<m.ga;g++)m.ev.push([1+Math.random()*89|0,'a'])});
+let min=0;await new Promise(res=>{const t=setInterval(()=>{min=Math.min(90,min+2);SB.forEach((m,i)=>{const h=m.ev.filter(e=>e[0]<=min&&e[1]=='h').length,a=m.ev.filter(e=>e[0]<=min&&e[1]=='a').length,el=$('#sc'+i);if(el)el.textContent=h+' - '+a+"  ·  "+min+"'"});if(min>=90){clearInterval(t);res()}},120)});
+SB.forEach(m=>{m.done=true;m.r=m.gh>m.ga?0:m.gh==m.ga?1:2});
+const win=ks.every(i=>sbPick[i]===SB[i].r),w=win?Math.floor(stake*tc):0;sbBusy=false;
+if(w)pay(w);if(cur=='sport'){renderSB();msg(win?'Pari gagné ! +'+(w-stake).toLocaleString('fr-FR')+' 🪙':'Pari perdu…',win)}}
+async function pushScore(){const d=initD();if(!d)return;try{await post('/api/score',{initData:d,coins:S.coins,name:S.name,av:S.photo?'':S.av})}catch(e){}}
+async function loadRank(){const el=$('#rk');if(!el)return;const d=initD();if(!d){el.innerHTML='<p class="lbl">Le classement mondial est disponible dans Telegram.</p>';return}
+try{await pushScore();const j=await post('/api/leaderboard',{initData:d});if(!j.top)throw 0;const e=$('#rk');if(!e)return;
+e.innerHTML=`<div class="lbl" style="margin-bottom:8px">Ta place : <b style="color:var(--gold)">${j.me?'#'+j.me:'—'}</b> sur ${j.total} joueurs</div>`+j.top.map((r,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;margin:5px 0;border-radius:12px;background:${r.me?'#3b2a6b':'var(--card)'};border:1px solid ${r.me?'var(--gold)':'#2d1f4a'}"><div style="width:34px;font-weight:800">${['🥇','🥈','🥉'][i]||'#'+(i+1)}</div><div style="font-size:22px">${r.a||'🎲'}</div><div style="flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.n}</div><div style="color:var(--gold);font-weight:800">${r.c.toLocaleString('fr-FR')} 🪙</div></div>`).join('')}catch(e){const x=$('#rk');if(x)x.innerHTML='<p class="lbl">Classement indisponible pour le moment.</p>'}}
+const RED=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+const RK=['2','3','4','5','6','7','8','9','10','J','Q','K','A'],SU=['♠','♥','♦','♣'];
+const MU=[0,1,1,2,3,5,7,20,50,100,200,800],NM=['Rien','Paire de Rois ou mieux','Deux paires','Brelan','Suite','Couleur','Full','Carré','Quinte flush','Royale avec joker','Cinq identiques','Quinte flush royale'];
+function lvl(){return Math.floor(Math.sqrt(S.st.wagered/100))+1}
+function ttl(){const L=lvl();return L>=15?'Légende':L>=10?'High Roller':L>=6?'VIP':L>=3?'Habitué':'Débutant'}
+function av(sz){const src=S.photo||(TGU&&TGU.photo_url);return src?`<img src="${src}" alt="" style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;border:2px solid var(--gold)" onerror="this.outerHTML='${S.av}'">`:`<span style="display:inline-flex;width:${sz}px;height:${sz}px;border-radius:50%;background:#2d1f4a;border:2px solid var(--gold);align-items:center;justify-content:center;font-size:${sz*.55}px">${S.av}</span>`}
+function upPhoto(inp){const f=inp.files&&inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),z=160,m=Math.min(im.width,im.height);c.width=c.height=z;c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,z,z);S.photo=c.toDataURL('image/jpeg',.8);save();go('profile')};im.onerror=()=>alert('Image non valide');im.src=r.result};r.readAsDataURL(f)}
+function delPhoto(){S.photo='';save();go('profile')}
+function setAv(e){S.av=e;save();go('profile')}
+function resetP(){if(confirm('Tout remettre à zéro (pièces, collection, stats) ?')){S.coins=1000;S.own=[];S.st={played:0,wagered:0,best:0};save();go('profile')}}
+const say=t=>{try{window.Telegram.WebApp.showAlert(t)}catch(e){alert(t)}};
+function initD(){try{return window.Telegram.WebApp.initData||''}catch(e){return ''}}
+async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json()}
+async function claim(tries){const d=initD();if(!d)return;try{const j=await post('/api/claim',{initData:d});if(j.coins>0){S.coins+=j.coins;save();say('+'+j.coins.toLocaleString('fr-FR')+' 🪙 ajoutés à ton solde !');if(['menu','profile','buy','shop'].includes(cur))go(cur)}else if(tries>0)setTimeout(()=>claim(tries-1),2000)}catch(e){}}
+async function buyPack(id){const d=initD();if(!d){say('Les achats sont disponibles uniquement dans Telegram.');return}
+try{const j=await post('/api/invoice',{pack:id,initData:d});if(!j.link)throw 0;window.Telegram.WebApp.openInvoice(j.link,st=>{if(st=='paid')claim(8);else if(st=='failed')say('Le paiement a échoué.')})}catch(e){say('Achat impossible pour le moment, réessaie plus tard.')}}
+setTimeout(()=>claim(0),1500);
+let pkD,pkH=[],pkHold=[],pkPh=0,pkBet=0,ml=0;
+function ev5(h){const c={};h.forEach(x=>c[x.r]=(c[x.r]||0)+1);const v=Object.values(c).sort((a,b)=>b-a),fl=h.every(x=>x.s==h[0].s),rs=h.map(x=>x.r).sort((a,b)=>a-b),st=v.length==5&&(rs[4]-rs[0]==4||rs.join()=='0,1,2,3,12');
+if(v[0]==5)return 10;if(st&&fl)return rs.join()=='8,9,10,11,12'?9:8;if(v[0]==4)return 7;if(v[0]==3&&v[1]==2)return 6;if(fl)return 5;if(st)return 4;if(v[0]==3)return 3;if(v[0]==2&&v[1]==2)return 2;if(v[0]==2){const p=+Object.keys(c).find(k=>c[k]==2);return p>=11?1:0}return 0}
+function evp(h){const b=h.filter(x=>!x.j);if(b.length==5){const s=ev5(b);return s==9?11:s}let best=0;for(let r=0;r<13;r++)for(let s=0;s<4;s++){const t=ev5(b.concat([{r,s}]));if(t>best)best=t}return best}
+function deck53(){const d=[{j:1}];for(let r=0;r<13;r++)for(let s=0;s<4;s++)d.push({r,s});for(let i=d.length-1;i>0;i--){const k=Math.random()*(i+1)|0;[d[i],d[k]]=[d[k],d[i]]}return d}
+function pkShow(){const el=$('#pk');if(!el)return;el.innerHTML=pkH.map((c,i)=>{if(c.b)return '<div style="width:19%;aspect-ratio:2/3;border-radius:8px;background:repeating-linear-gradient(45deg,#7c3aed,#7c3aed 6px,#4c1d95 6px,#4c1d95 12px);border:2px solid #fff"></div>';const red=!c.j&&(c.s==1||c.s==2),h=pkHold[i];return `<div onclick="pkTog(${i})" style="width:19%;aspect-ratio:2/3;background:#fff;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;color:${c.j?'#7c3aed':red?'#dc2626':'#111'};font-size:${c.j?10:20}px;position:relative;cursor:pointer;border:3px solid ${h?'#ffc940':'transparent'};transform:${h?'translateY(-8px)':'none'};transition:.15s">${c.j?'<span style="font-size:26px">🃏</span>JOKER':RK[c.r]+'<span style="font-size:22px">'+SU[c.s]+'</span>'}${h?'<span style="position:absolute;bottom:-22px;color:#ffc940;font-size:10px">GARDÉ</span>':''}</div>`}).join('')}
+function pkAct(){if(pkPh==0){if(!canBet())return;pay(-S.bet);pkBet=S.bet;pkD=deck53();pkH=[0,1,2,3,4].map(()=>pkD.pop());pkHold=[0,0,0,0,0].map(()=>false);pkPh=1;msg('Touche les cartes à garder');$('#pkb').textContent='Tirer';pkShow()}
+else{pkH=pkH.map((c,i)=>pkHold[i]?c:pkD.pop());pkPh=0;const s=evp(pkH),w=pkBet*MU[s];pkHold=[0,0,0,0,0].map(()=>false);pkShow();$('#pkb').textContent='Distribuer';if(w){pay(w);msg(NM[s]+' ! +'+w+' 🪙',true)}else msg('Rien… retente ta chance',false)}}
+function pkTog(i){if(pkPh!=1)return;pkHold[i]=!pkHold[i];pkShow()}
+function setBet(v){if(busy||spinning||bjBusy||sbBusy||pkPh==1||bjOn)return;S.bet=v;go(cur)}
+function menuLoop(){const id=++ml;let r=0;(function f(){if(id!==ml||cur!='menu')return;r+=.004;drawWheel(null,'mh',r);requestAnimationFrame(f)})()}
+const ORD=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+let bets={},wr=0,busy=false;
+function colr(n){return n==0?'#16a34a':RED.includes(n)?'#dc2626':'#151515'}
+function drawWheel(ball,cid,rot){const c=$('#'+(cid||'wh'));if(!c)return;const w0=rot===undefined?wr:rot;const x=c.getContext('2d'),W=c.width,cx=W/2,r=W/2-4,a=2*Math.PI/37;x.clearRect(0,0,W,W);
+x.beginPath();x.arc(cx,cx,r,0,7);const gr=x.createRadialGradient(cx,cx,r*.5,cx,cx,r);gr.addColorStop(0,'#7a4a1e');gr.addColorStop(1,'#3b220b');x.fillStyle=gr;x.fill();x.strokeStyle='#d4af37';x.lineWidth=3;x.stroke();
+for(let i=0;i<37;i++){const s=w0+i*a-a/2-Math.PI/2;x.beginPath();x.moveTo(cx,cx);x.arc(cx,cx,r*.86,s,s+a);x.closePath();x.fillStyle=colr(ORD[i]);x.fill();x.strokeStyle='#d4af37';x.lineWidth=1;x.stroke();
+x.save();x.translate(cx,cx);x.rotate(w0+i*a-Math.PI/2);x.translate(r*.74,0);x.rotate(Math.PI/2);x.fillStyle='#fff';x.font='bold '+Math.round(W/29)+'px sans-serif';x.textAlign='center';x.fillText(ORD[i],0,4);x.restore()}
+x.beginPath();x.arc(cx,cx,r*.56,0,7);x.fillStyle='#3a2410';x.fill();x.strokeStyle='#d4af37';x.lineWidth=2;x.stroke();
+x.save();x.translate(cx,cx);x.rotate(w0);x.strokeStyle='#d4af37';x.lineWidth=4;for(let k=0;k<4;k++){x.rotate(Math.PI/2);x.beginPath();x.moveTo(r*.1,0);x.lineTo(r*.52,0);x.stroke()}x.restore();x.beginPath();x.arc(cx,cx,r*.1,0,7);x.fillStyle='#d4af37';x.fill();
+if(ball){x.beginPath();x.arc(cx+ball.r*r*Math.cos(ball.a),cx+ball.r*r*Math.sin(ball.a),6,0,7);x.fillStyle='#fff';x.fill();x.strokeStyle='#888';x.lineWidth=1;x.stroke()}}
+function spinWheel(n,done){const a=2*Math.PI/37,i=ORD.indexOf(n),R0=wr,tr=5*2*Math.PI,T=5000,t0=performance.now(),Aend=R0+tr+i*a-Math.PI/2;
+(function f(now){const p=Math.min(1,(now-t0)/T),e=1-Math.pow(1-p,3);wr=R0+e*tr;drawWheel({a:Aend+(1-e)*8*2*Math.PI,r:.93-.13*Math.pow(e,3)});if(p<1)requestAnimationFrame(f);else done()})(t0)}
+function tot(){return Object.values(bets).reduce((a,b)=>a+b,0)}
+function pb(k){if(busy)return;bets[k]=(bets[k]||0)+S.bet;tbl()}
+function tbl(){const t=$('#tb');if(!t)return;const cell=(k,l,bg,sp,ex)=>`<div onclick="pb('${k}')" style="${sp?'grid-column:span '+sp+';':''}${ex||''}background:${bg};padding:9px 0;text-align:center;border:1px solid #d4af37;font-size:12px;font-weight:700;position:relative;cursor:pointer">${l}${bets[k]?`<span style="position:absolute;right:1px;top:1px;background:var(--gold);color:#000;border-radius:8px;font-size:9px;padding:0 3px">${bets[k]}</span>`:''}</div>`;
+let h='<div style="display:grid;grid-template-columns:1.5fr repeat(12,1fr)">'+cell('n0','0','#16a34a',0,'grid-column:1;grid-row:span 3;display:flex;align-items:center;justify-content:center;font-size:18px;');
+for(const row of [3,2,1])for(let c=0;c<12;c++){const n=c*3+row;h+=cell('n'+n,n,colr(n))}
+const g='#2d1f4a';h+='<div></div>'+cell('d1','1-12',g,4)+cell('d2','13-24',g,4)+cell('d3','25-36',g,4)+'<div></div>'+cell('l','1-18',g,2)+cell('e','Pair',g,2)+cell('r','Rouge','#dc2626',2)+cell('b','Noir','#151515',2)+cell('o','Impair',g,2)+cell('h','19-36',g,2);
+t.innerHTML=h+'</div><div class="lbl" style="margin-top:6px">Total misé : '+tot()+' 🪙 · chaque tap ajoute ta mise</div>'}
+function roul(){if(busy)return;const t=tot();if(!t){msg('Place une mise sur la table',false);return}if(S.coins<t){msg('Pas assez de pièces !',false);return}
+pay(-t);busy=true;$('#go').disabled=true;msg('Rien ne va plus…');const n=Math.random()*37|0;
+spinWheel(n,()=>{let w=0;for(const k in bets){const v=bets[k];let m=0;
+if(k[0]=='n'){if(+k.slice(1)==n)m=36}else if(n>0){if((k=='r'&&RED.includes(n))||(k=='b'&&!RED.includes(n))||(k=='e'&&n%2==0)||(k=='o'&&n%2==1)||(k=='l'&&n<=18)||(k=='h'&&n>=19))m=2;if((k=='d1'&&n<=12)||(k=='d2'&&n>12&&n<=24)||(k=='d3'&&n>24))m=3}
+w+=v*m}
+busy=false;bets={};if(w)pay(w);tbl();const g=$('#go');if(g)g.disabled=false;
+msg((n==0?'🟢 ':RED.includes(n)?'🔴 ':'⚫ ')+n+(w>t?' — Gagné +'+(w-t)+' 🪙':w?' — Récupéré '+w+' 🪙':' — Perdu…'),w>t?true:w?undefined:false)})}
+let deck,P,D,bjOn=false,bjBet=0;
+const CV=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+function draw(){return {c:CV[Math.random()*13|0],s:Math.random()*4|0}}
+function val(h){let t=0,a=0;h.forEach(x=>{const c=x.c;if(c=='A'){a++;t+=11}else t+=('JQK'.includes(c)?10:+c)});while(t>21&&a){t-=10;a--}return t}
+function bjCard(x,hide){if(hide)return '<div class="bjc back"></div>';return `<div class="bjc ${x.s==1||x.s==2?'red':''}"><b>${x.c}</b><i>${SU[x.s]}</i></div>`}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let bjBusy=false;
+function bjTot(hide){const p=$('#ps');if(p)p.textContent=P.length?'('+val(P)+')':'';const d=$('#ds');if(d)d.textContent=hide||!D.length?'':'('+val(D)+')'}
+function bjAdd(w,x,hide){const el=$(w=='p'?'#ph':'#dh');if(el)el.insertAdjacentHTML('beforeend',bjCard(x,hide))}
+function bjReveal(){const dh=$('#dh');if(dh&&dh.children[1]&&dh.children[1].classList.contains('back'))dh.children[1].outerHTML=bjCard(D[1]);bjTot(false)}
+async function bjDeal(){if(bjBusy||!canBet())return;pay(-S.bet);bjBet=S.bet;P=[];D=[];bjBusy=true;bjOn=true;msg('');
+$('#ph').innerHTML='';$('#dh').innerHTML='';bjTot(true);$('#deal').disabled=true;
+P.push(draw());bjAdd('p',P[0]);bjTot(true);await sleep(500);
+D.push(draw());bjAdd('d',D[0]);await sleep(500);
+P.push(draw());bjAdd('p',P[1]);bjTot(true);await sleep(500);
+D.push(draw());bjAdd('d',D[1],true);await sleep(500);
+bjBusy=false;if(cur!='bj')return;
+if(val(P)==21)bjStand();else{$('#hit').disabled=$('#std').disabled=false}}
+async function bjHit(){if(bjBusy)return;bjBusy=true;$('#hit').disabled=$('#std').disabled=true;
+P.push(draw());bjAdd('p',P[P.length-1]);bjTot(true);await sleep(500);bjBusy=false;
+if(val(P)>21)bjEnd(0,'Dépassé ! Perdu…');else if(val(P)==21)bjStand();else{$('#hit').disabled=$('#std').disabled=false}}
+async function bjStand(){if(bjBusy)return;bjBusy=true;$('#hit').disabled=$('#std').disabled=true;
+bjReveal();await sleep(800);
+while(val(D)<17){D.push(draw());bjAdd('d',D[D.length-1]);bjTot(false);await sleep(800)}
+bjBusy=false;const p=val(P),d=val(D);
+if(d>21||p>d)bjEnd(p==21&&P.length==2?2.5:2,'Gagné !');else if(p==d)bjEnd(1,'Égalité');else bjEnd(0,'Perdu…')}
+function bjEnd(m,t){bjReveal();bjOn=false;$('#deal').disabled=false;$('#hit').disabled=$('#std').disabled=true;const w=Math.floor(bjBet*m);if(w)pay(w);msg(t+(m>1?' +'+(w-bjBet)+' 🪙':''),m>1?true:m==1?undefined:false)}
+go('menu');
+</script></body></html>
