@@ -75,11 +75,11 @@ function canBet(){if(S.coins<S.bet){msg('Pas assez de pièces !',false);return f
 function pay(w){S.coins+=w;if(w<0){S.st.played++;S.st.wagered-=w}else if(w>S.st.best)S.st.best=w;save()}
 let cur='menu';
 function go(v){cur=v;$('#back').style.visibility=v=='menu'?'hidden':'visible';V[v]();save()}
-$('#back').onclick=()=>{if(busy||spinning||bjBusy||sbBusy)return;bets={};go('menu')};
+$('#back').onclick=()=>{if(busy||spinning||bjBusy)return;bets={};go('menu')};
 const V={
-menu(){app.innerHTML=`<div class="hero"><canvas id="mh" width="300" height="300"></canvas><div class="title">CazMachine</div><div class="sub">CASINO · PARIS · POKER</div></div><div class="pcard" onclick="go('profile')">${av(44)}<div style="flex:1;text-align:left"><b>${S.name}</b><div class="lbl" style="text-align:left">Niv. ${lvl()} · ${ttl()}</div></div><span style="color:var(--gold)">Profil ›</span></div>
+menu(){app.innerHTML=`<div class="hero"><canvas id="mh" width="300" height="300"></canvas><div class="title">CazMachine</div><div class="sub">CASINO · ROULETTE · POKER</div></div><div class="pcard" onclick="go('profile')">${av(44)}<div style="flex:1;text-align:left"><b>${S.name}</b><div class="lbl" style="text-align:left">Niv. ${lvl()} · ${ttl()}</div></div><span style="color:var(--gold)">Profil ›</span></div>
 <div class="grid">
-<div class="tile t1" onclick="go('sport')"><div class="e">⚽</div><div>Paris sportifs</div></div>
+<div class="tile t1" onclick="go('slots')"><div class="e">🎰</div><div>Machine à sous</div></div>
 <div class="tile t2" onclick="go('roulette')"><div class="e">🎡</div><div>Roulette</div></div>
 <div class="tile t3" onclick="go('bj')"><div class="e">♠️</div><div>Blackjack</div></div>
 <div class="tile t4" onclick="go('poker')"><div class="e">🃏</div><div>Joker Poker</div></div>
@@ -87,10 +87,10 @@ menu(){app.innerHTML=`<div class="hero"><canvas id="mh" width="300" height="300"
 <div class="tile t6" onclick="go('rank')"><div class="e">🏆</div><div>Classement mondial</div></div></div>
 <p class="lbl">Pièces virtuelles uniquement — aucun argent réel.</p>
 <div class="row"><button class="alt" onclick="if(S.coins<50){S.coins+=500;save();go('menu')}else alert('Bonus dispo quand tu as moins de 50 🪙')">🎁 Bonus gratuit</button><button onclick="go('buy')" style="background:linear-gradient(#f59e0b,#d97706)">⭐ Acheter des jetons</button></div>`;menuLoop()},
-sport(){if(!SB.length)sbNew();renderSB()},
+slots(){app.innerHTML=`<h2>🎰 Machine à sous</h2><div class="reels">${[0,1,2].map(k=>`<div class="rl" id="rl${k}"><span>🍒</span><span>${SYM[k+1]}</span><span>🔔</span></div>`).join('')}<div class="pl"></div></div><div class="msg" id="msg">Alignez 3 symboles sur la ligne rouge !</div>${betBar()}<div class="row"><button id="sp" onclick="spin()" style="padding:14px 40px;font-size:18px;background:linear-gradient(#f59e0b,#d97706)">TOURNER</button></div><div style="max-width:280px;margin:14px auto 0;font-size:14px">${[['💎💎💎','×50'],['⭐⭐⭐','×10'],['🔔🔔🔔','×5'],['🍋🍋🍋','×2'],['🍒🍒','×1'],['🍒','×0,5']].map(r=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #2d1f4a"><span>${r[0]}</span><b style="color:var(--gold)">${r[1]}</b></div>`).join('')}</div><p class="lbl">Taux de retour aux joueurs : 10 %</p>`},
 rank(){app.innerHTML=`<h2>🏆 Classement mondial</h2><div id="rk"><p class="lbl">Chargement…</p></div>`;loadRank()},
 roulette(){app.innerHTML=`<h2>🎡 Roulette européenne</h2><canvas id="wh" width="300" height="300" style="display:block;margin:0 auto;max-width:100%"></canvas><div class="msg" id="msg">Place tes mises</div>${betBar()}<div id="tb"></div><div class="row"><button id="go" onclick="roul()">Lancer</button><button class="alt" onclick="if(!busy){bets={};tbl()}">Effacer</button></div>`;tbl();drawWheel()},
-bj(){app.innerHTML=`<h2>🃏 Blackjack</h2><div class="lbl">Croupier <span id="ds"></span></div><div class="hand" id="dh"></div><div class="lbl">Toi <span id="ps"></span></div><div class="hand" id="ph"></div><div class="msg" id="msg">Choisis ta mise puis distribue</div>${betBar()}<div class="row"><button id="deal" onclick="bjDeal()">Distribuer</button><button id="hit" onclick="bjHit()" disabled>Tirer</button><button id="std" onclick="bjStand()" disabled>Rester</button></div>`;bjOn=false},
+bj(){HS=[];D=[];hi=0;app.innerHTML=`<h2>🃏 Blackjack</h2><div class="lbl">Croupier <span id="ds"></span></div><div class="hand" id="dh"></div><div id="pa" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px"></div><div class="msg" id="msg">Choisis ta mise puis distribue</div>${betBar()}<div class="row"><button id="deal" onclick="bjDeal()">Distribuer</button><button id="hit" onclick="bjHit()" disabled>Tirer</button><button id="std" onclick="bjStand()" disabled>Rester</button></div><div class="row"><button id="dbl" class="alt" onclick="bjDouble()" disabled>Doubler</button><button id="spl" class="alt" onclick="bjSplit()" disabled>Split</button></div>`;bjOn=false},
 poker(){pkPh=0;pkH=[1,2,3,4,5].map(()=>({b:1}));app.innerHTML=`<h2>🃏 Joker Poker</h2><div id="pk" style="display:flex;gap:2%;margin:14px 0 28px"></div><div class="msg" id="msg">Le Joker est sauvage !</div>${betBar()}<div class="row"><button id="pkb" onclick="pkAct()">Distribuer</button></div><div style="font-size:12px;color:var(--mut);margin-top:12px;max-width:320px;margin-inline:auto">${[11,10,9,8,7,6,5,4,3,2,1].map(i=>`<div style="display:flex;justify-content:space-between;padding:2px 0"><span>${NM[i]}</span><span>×${MU[i]}</span></div>`).join('')}</div>`;pkShow()},
 profile(){const L=lvl(),a=(L-1)*(L-1)*100,b=L*L*100,pc=Math.min(100,(S.st.wagered-a)/(b-a)*100|0),T=(n,v)=>`<div class="item"><div class="lbl">${n}</div><div style="font-weight:800;font-size:18px;color:var(--gold)">${v}</div></div>`;
 app.innerHTML=`<div style="text-align:center;margin-top:6px">${av(84)}<div style="margin:10px 0 4px"><input id="nm" value="${S.name}" maxlength="16" onchange="S.name=clean(this.value)||S.name;save();go('profile')" style="background:#0d0716;border:1px solid #2d1f4a;color:var(--ink);border-radius:10px;padding:8px 12px;font:inherit;font-weight:800;font-size:20px;text-align:center;width:80%"></div>
@@ -103,28 +103,20 @@ ${S.photo||(TGU&&TGU.photo_url)?'':`<div class="row" style="margin-top:10px">${[
 buy(){const P=[['p1',25,2500,'👝'],['p2',100,12000,'💰'],['p3',500,70000,'🏆']];app.innerHTML=`<h2>⭐ Acheter des jetons</h2><div class="items" style="grid-template-columns:1fr">${P.map(p=>`<div class="item" style="display:flex;align-items:center;gap:14px;text-align:left"><div class="e">${p[3]}</div><div style="flex:1"><b>${p[2].toLocaleString('fr-FR')} 🪙</b></div><button onclick="buyPack('${p[0]}')">${p[1]} ⭐</button></div>`).join('')}</div><p class="lbl" style="margin-top:14px">Jetons virtuels : aucune valeur monétaire, non échangeables, non remboursables en argent. Réservé aux 18 ans et plus. Un problème d'achat ? Envoie /paysupport au bot.</p>`},
 shop(){app.innerHTML=`<h2>🛒 Boutique & Collection</h2><div class="items">${ITEMS.map(i=>{const o=S.own.includes(i.id);return `<div class="item ${o?'own':'lock'}"><div class="e">${i.e}</div><div>${i.n}</div><div class="lbl r-${i.r}">${i.r}</div>${o?'<div class="win">✔ Possédé</div>':`<button style="margin-top:6px;padding:8px 12px" onclick="buy('${i.id}')">${i.p.toLocaleString('fr-FR')} 🪙</button>`}</div>`}).join('')}</div>${S.own.length==ITEMS.length?'<p class="msg win">🏆 Collection complète !</p>':''}`}};
 function buy(id){const i=ITEMS.find(x=>x.id==id);if(S.coins<i.p){alert('Pas assez de pièces !');return}S.coins-=i.p;S.own.push(id);go('shop')}
+const SYM=['🍒','🍋','🔔','⭐','💎'],OUT=[[.5,.058],[1,.02],[2,.008],[5,.003],[10,.001],[50,.0002]];
 let spinning=false;
-const TEAMS=[['FC Diamant',84],['Dragons United',80],['Royal Club',76],['Étoile Rouge',72],['AS Trèfle',68],["Lions d'Or",64],['Olympique Joker',60],['Real Casino',56]];
-let SB=[],sbPick={},sbBusy=false;
-function pois(l,k){let p=Math.exp(-l);for(let i=1;i<=k;i++)p*=l/i;return p}
-function samp(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
-function probs(lh,la){let h=0,d=0,a=0;for(let i=0;i<=10;i++)for(let j=0;j<=10;j++){const p=pois(lh,i)*pois(la,j);if(i>j)h+=p;else if(i==j)d+=p;else a+=p}const t=h+d+a;return[h/t,d/t,a/t]}
-function sbNew(){const t=TEAMS.slice().sort(()=>Math.random()-.5);SB=[];sbPick={};
-for(let i=0;i<8;i+=2){const h=t[i],a=t[i+1],lh=1.3*Math.pow(h[1]/a[1],1.2)*1.1,la=1.3*Math.pow(a[1]/h[1],1.2)*.9;
-SB.push({h,a,lh,la,o:probs(lh,la).map(p=>Math.max(1.05,Math.round(.92/p*100)/100)),done:false})}}
-function sbSel(i,k){if(sbBusy||SB[i].done)return;if(sbPick[i]===k)delete sbPick[i];else sbPick[i]=k;renderSB()}
-function sbTot(){const ks=Object.keys(sbPick);return{n:ks.length,c:ks.reduce((a,i)=>a*SB[i].o[sbPick[i]],1)}}
-function slip(){const el=$('#slip');if(!el)return;const t=sbTot();el.innerHTML=t.n?`<div class="lbl">${t.n>1?'Combiné ('+t.n+' matchs)':'Pari simple'} · cote ${t.c.toFixed(2)} · gain possible <b style="color:var(--gold)">${Math.floor(S.bet*t.c).toLocaleString('fr-FR')} 🪙</b></div>`:'<div class="lbl">Choisis un ou plusieurs résultats</div>'}
-function renderSB(){const done=SB.some(m=>m.done);
-app.innerHTML=`<h2>⚽ Paris sportifs</h2><div class="lbl" style="text-align:left">CazLeague — matchs virtuels simulés</div>${SB.map((m,i)=>`<div class="item" style="margin:10px 0"><div style="font-weight:800">${m.h[0]} <span style="color:var(--mut);font-weight:400">vs</span> ${m.a[0]}</div><div id="sc${i}" style="font-size:22px;font-weight:900;color:var(--gold);min-height:32px">${m.done?m.gh+' - '+m.ga+' (FT)':''}</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${[0,1,2].map(k=>{let st='';if(m.done){if(k==m.r)st+='outline:2px solid var(--ok);';if(sbPick[i]===k)st+=k==m.r?'background:var(--ok);':'background:var(--bad);'}else if(sbPick[i]===k)st='background:var(--gold);color:#000;';return `<button class="alt" style="padding:8px 4px;${st}" onclick="sbSel(${i},${k})"><div style="font-size:11px;opacity:.75">${['1','N','2'][k]}</div>${m.o[k].toFixed(2)}</button>`}).join('')}</div></div>`).join('')}<div class="msg" id="msg"></div>${betBar()}<div id="slip"></div><div class="row"><button id="sbgo" onclick="${done?'sbNext()':'sbGo()'}">${done?'Nouveaux matchs':'Valider le pari'}</button></div><p class="lbl">Jetons virtuels sans valeur monétaire.</p>`;slip()}
-function sbNext(){if(sbBusy)return;sbNew();renderSB()}
-async function sbGo(){if(sbBusy)return;const ks=Object.keys(sbPick);if(!ks.length){msg('Choisis au moins un résultat',false);return}if(!canBet())return;
-pay(-S.bet);const stake=S.bet,tc=sbTot().c;sbBusy=true;$('#sbgo').disabled=true;msg("Coup d'envoi !");
-SB.forEach(m=>{m.gh=samp(m.lh);m.ga=samp(m.la);m.ev=[];for(let g=0;g<m.gh;g++)m.ev.push([1+Math.random()*89|0,'h']);for(let g=0;g<m.ga;g++)m.ev.push([1+Math.random()*89|0,'a'])});
-let min=0;await new Promise(res=>{const t=setInterval(()=>{min=Math.min(90,min+2);SB.forEach((m,i)=>{const h=m.ev.filter(e=>e[0]<=min&&e[1]=='h').length,a=m.ev.filter(e=>e[0]<=min&&e[1]=='a').length,el=$('#sc'+i);if(el)el.textContent=h+' - '+a+"  ·  "+min+"'"});if(min>=90){clearInterval(t);res()}},120)});
-SB.forEach(m=>{m.done=true;m.r=m.gh>m.ga?0:m.gh==m.ga?1:2});
-const win=ks.every(i=>sbPick[i]===SB[i].r),w=win?Math.floor(stake*tc):0;sbBusy=false;
-if(w)pay(w);if(cur=='sport'){renderSB();msg(win?'Pari gagné ! +'+(w-stake).toLocaleString('fr-FR')+' 🪙':'Pari perdu…',win)}}
+function slotOutcome(){let r=Math.random(),m=0;for(const [x,p] of OUT){if(r<p){m=x;break}r-=p}
+const NC=SYM.slice(1),pick=a=>a[Math.random()*a.length|0],sh=a=>a.sort(()=>Math.random()-.5);let row;
+if(m==0){do row=[pick(NC),pick(NC),pick(NC)];while(row[0]==row[1]&&row[1]==row[2])}
+else if(m==.5)row=sh(['🍒',pick(NC),pick(NC)]);
+else if(m==1)row=sh(['🍒','🍒',pick(NC)]);
+else row=Array(3).fill(m==2?'🍋':m==5?'🔔':m==10?'⭐':'💎');
+return{m,row}}
+function setCol(k,a,b,c){const e=$('#rl'+k);if(!e)return;e.children[0].textContent=a;e.children[1].textContent=b;e.children[2].textContent=c}
+function spin(){if(spinning||!canBet())return;pay(-S.bet);spinning=true;$('#sp').disabled=true;msg('');document.querySelectorAll('.rl').forEach(e=>e.classList.remove('hit'));
+const o=slotOutcome(),rnd=()=>SYM[Math.random()*5|0],stop=[800,1300,1800],done=[0,0,0],t0=Date.now();
+const t=setInterval(()=>{const el=Date.now()-t0;for(let k=0;k<3;k++){if(done[k])continue;if(el>=stop[k]){done[k]=1;setCol(k,rnd(),o.row[k],rnd())}else setCol(k,rnd(),rnd(),rnd())}
+if(done[0]&&done[1]&&done[2]){clearInterval(t);const w=Math.floor(S.bet*o.m);if(w){pay(w);document.querySelectorAll('.rl').forEach(e=>e.classList.add('hit'));msg((o.m>=5?'🎉 GROS GAIN ':'Gagné ')+'+'+w+' 🪙 (×'+String(o.m).replace('.',',')+')',true)}else msg('Perdu…',false);spinning=false;const b=$('#sp');if(b)b.disabled=false}},90)}
 async function pushScore(){const d=initD();if(!d)return;try{await post('/api/score',{initData:d,coins:S.coins,name:S.name,av:S.photo?'':S.av})}catch(e){}}
 async function loadRank(){const el=$('#rk');if(!el)return;const d=initD();if(!d){el.innerHTML='<p class="lbl">Le classement mondial est disponible dans Telegram.</p>';return}
 try{await pushScore();const j=await post('/api/leaderboard',{initData:d});if(!j.top)throw 0;const e=$('#rk');if(!e)return;
@@ -155,7 +147,7 @@ function pkShow(){const el=$('#pk');if(!el)return;el.innerHTML=pkH.map((c,i)=>{i
 function pkAct(){if(pkPh==0){if(!canBet())return;pay(-S.bet);pkBet=S.bet;pkD=deck53();pkH=[0,1,2,3,4].map(()=>pkD.pop());pkHold=[0,0,0,0,0].map(()=>false);pkPh=1;msg('Touche les cartes à garder');$('#pkb').textContent='Tirer';pkShow()}
 else{pkH=pkH.map((c,i)=>pkHold[i]?c:pkD.pop());pkPh=0;const s=evp(pkH),w=pkBet*MU[s];pkHold=[0,0,0,0,0].map(()=>false);pkShow();$('#pkb').textContent='Distribuer';if(w){pay(w);msg(NM[s]+' ! +'+w+' 🪙',true)}else msg('Rien… retente ta chance',false)}}
 function pkTog(i){if(pkPh!=1)return;pkHold[i]=!pkHold[i];pkShow()}
-function setBet(v){if(busy||spinning||bjBusy||sbBusy||pkPh==1||bjOn)return;S.bet=v;go(cur)}
+function setBet(v){if(busy||spinning||bjBusy||pkPh==1||bjOn)return;S.bet=v;go(cur)}
 function menuLoop(){const id=++ml;let r=0;(function f(){if(id!==ml||cur!='menu')return;r+=.004;drawWheel(null,'mh',r);requestAnimationFrame(f)})()}
 const ORD=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
 let bets={},wr=0,busy=false;
@@ -183,32 +175,51 @@ if(k[0]=='n'){if(+k.slice(1)==n)m=36}else if(n>0){if((k=='r'&&RED.includes(n))||
 w+=v*m}
 busy=false;bets={};if(w)pay(w);tbl();const g=$('#go');if(g)g.disabled=false;
 msg((n==0?'🟢 ':RED.includes(n)?'🔴 ':'⚫ ')+n+(w>t?' — Gagné +'+(w-t)+' 🪙':w?' — Récupéré '+w+' 🪙':' — Perdu…'),w>t?true:w?undefined:false)})}
-let deck,P,D,bjOn=false,bjBet=0;
+let D=[],HS=[],hi=0,bjOn=false;
 const CV=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 function draw(){return {c:CV[Math.random()*13|0],s:Math.random()*4|0}}
+function nc(){const x=draw();x.n=true;return x}
+function cv(x){return x.c=='A'?11:('JQK'.includes(x.c)||x.c=='10')?10:+x.c}
 function val(h){let t=0,a=0;h.forEach(x=>{const c=x.c;if(c=='A'){a++;t+=11}else t+=('JQK'.includes(c)?10:+c)});while(t>21&&a){t-=10;a--}return t}
-function bjCard(x,hide){if(hide)return '<div class="bjc back"></div>';return `<div class="bjc ${x.s==1||x.s==2?'red':''}"><b>${x.c}</b><i>${SU[x.s]}</i></div>`}
+function bjCard(x,hide,still){if(hide)return '<div class="bjc back"></div>';return `<div class="bjc ${x.s==1||x.s==2?'red':''}"${still?' style="animation:none"':''}><b>${x.c}</b><i>${SU[x.s]}</i></div>`}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let bjBusy=false;
-function bjTot(hide){const p=$('#ps');if(p)p.textContent=P.length?'('+val(P)+')':'';const d=$('#ds');if(d)d.textContent=hide||!D.length?'':'('+val(D)+')'}
-function bjAdd(w,x,hide){const el=$(w=='p'?'#ph':'#dh');if(el)el.insertAdjacentHTML('beforeend',bjCard(x,hide))}
-function bjReveal(){const dh=$('#dh');if(dh&&dh.children[1]&&dh.children[1].classList.contains('back'))dh.children[1].outerHTML=bjCard(D[1]);bjTot(false)}
-async function bjDeal(){if(bjBusy||!canBet())return;pay(-S.bet);bjBet=S.bet;P=[];D=[];bjBusy=true;bjOn=true;msg('');
-$('#ph').innerHTML='';$('#dh').innerHTML='';bjTot(true);$('#deal').disabled=true;
-P.push(draw());bjAdd('p',P[0]);bjTot(true);await sleep(500);
+function bjAdd(w,x,hide){const el=$('#dh');if(el)el.insertAdjacentHTML('beforeend',bjCard(x,hide))}
+function bjReveal(){const dh=$('#dh');if(dh&&dh.children[1]&&dh.children[1].classList.contains('back'))dh.children[1].outerHTML=bjCard(D[1]);const ds=$('#ds');if(ds)ds.textContent='('+val(D)+')'}
+function bjPaint(){const el=$('#pa');if(!el)return;el.innerHTML=HS.map((h,i)=>`<div style="flex:1;min-width:140px;padding:4px;border-radius:12px;${HS.length>1&&i==hi&&!h.done&&bjOn?'outline:2px solid var(--gold);':''}"><div class="lbl">${HS.length>1?'Main '+(i+1):'Toi'} (${val(h.c)}) · mise ${h.bet}${h.dbl?' (doublée)':''}${h.res?' · '+h.res:''}</div><div class="hand">${h.c.map(x=>bjCard(x,false,!x.n)).join('')}</div></div>`).join('');HS.forEach(h=>h.c.forEach(x=>x.n=false))}
+function bjBtns(on){const g=id=>$('#'+id);if(!g('hit'))return;const h=HS[hi];g('deal').disabled=bjOn;g('hit').disabled=g('std').disabled=!on;
+g('dbl').disabled=!(on&&h&&h.c.length==2&&S.coins>=h.bet);
+g('spl').disabled=!(on&&h&&HS.length==1&&h.c.length==2&&cv(h.c[0])==cv(h.c[1])&&S.coins>=h.bet)}
+async function bjDeal(){if(bjBusy||!canBet())return;pay(-S.bet);D=[];HS=[{c:[],bet:S.bet,dbl:false,done:false,res:''}];hi=0;bjBusy=true;bjOn=true;msg('');
+$('#dh').innerHTML='';$('#ds').textContent='';bjBtns(false);const h=HS[0];
+h.c.push(nc());bjPaint();await sleep(500);
 D.push(draw());bjAdd('d',D[0]);await sleep(500);
-P.push(draw());bjAdd('p',P[1]);bjTot(true);await sleep(500);
+h.c.push(nc());bjPaint();await sleep(500);
 D.push(draw());bjAdd('d',D[1],true);await sleep(500);
 bjBusy=false;if(cur!='bj')return;
-if(val(P)==21)bjStand();else{$('#hit').disabled=$('#std').disabled=false}}
-async function bjHit(){if(bjBusy)return;bjBusy=true;$('#hit').disabled=$('#std').disabled=true;
-P.push(draw());bjAdd('p',P[P.length-1]);bjTot(true);await sleep(500);bjBusy=false;
-if(val(P)>21)bjEnd(0,'Dépassé ! Perdu…');else if(val(P)==21)bjStand();else{$('#hit').disabled=$('#std').disabled=false}}
-async function bjStand(){if(bjBusy)return;bjBusy=true;$('#hit').disabled=$('#std').disabled=true;
+if(val(h.c)==21){h.natural=true;h.done=true;return bjDealer()}
+bjBtns(true)}
+async function bjHit(){if(bjBusy)return;bjBusy=true;bjBtns(false);const h=HS[hi];h.c.push(nc());bjPaint();await sleep(500);bjBusy=false;
+const v=val(h.c);if(v>21){h.done=true;h.res='Dépassé';return bjNext()}if(v==21){h.done=true;return bjNext()}bjBtns(true)}
+function bjStand(){if(bjBusy)return;HS[hi].done=true;bjNext()}
+async function bjDouble(){if(bjBusy)return;bjBusy=true;bjBtns(false);const h=HS[hi];pay(-h.bet);h.bet*=2;h.dbl=true;h.c.push(nc());bjPaint();await sleep(600);bjBusy=false;h.done=true;if(val(h.c)>21)h.res='Dépassé';bjNext()}
+async function bjSplit(){if(bjBusy)return;bjBusy=true;bjBtns(false);const h=HS[0],ace=h.c[0].c=='A';pay(-h.bet);
+const h2={c:[h.c.pop()],bet:h.bet,dbl:false,done:false,res:''};HS.push(h2);bjPaint();await sleep(500);
+h.c.push(nc());bjPaint();await sleep(500);h2.c.push(nc());bjPaint();await sleep(500);bjBusy=false;
+if(ace){h.done=h2.done=true;return bjNext()}
+hi=0;if(val(h.c)==21){h.done=true;bjNext()}else{bjPaint();bjBtns(true)}}
+function bjNext(){while(hi<HS.length&&HS[hi].done)hi++;
+if(hi<HS.length){const h=HS[hi];if(val(h.c)==21){h.done=true;return bjNext()}bjPaint();return bjBtns(true)}
+hi=HS.length-1;bjDealer()}
+async function bjDealer(){bjBusy=true;bjBtns(false);bjPaint();const live=HS.some(h=>!h.natural&&val(h.c)<=21);
 bjReveal();await sleep(800);
-while(val(D)<17){D.push(draw());bjAdd('d',D[D.length-1]);bjTot(false);await sleep(800)}
-bjBusy=false;const p=val(P),d=val(D);
-if(d>21||p>d)bjEnd(p==21&&P.length==2?2.5:2,'Gagné !');else if(p==d)bjEnd(1,'Égalité');else bjEnd(0,'Perdu…')}
-function bjEnd(m,t){bjReveal();bjOn=false;$('#deal').disabled=false;$('#hit').disabled=$('#std').disabled=true;const w=Math.floor(bjBet*m);if(w)pay(w);msg(t+(m>1?' +'+(w-bjBet)+' 🪙':''),m>1?true:m==1?undefined:false)}
+if(live)while(val(D)<17){D.push(draw());bjAdd('d',D[D.length-1]);const ds=$('#ds');if(ds)ds.textContent='('+val(D)+')';await sleep(800)}
+bjBusy=false;bjSettle()}
+function bjSettle(){const d=val(D),dn=D.length==2&&d==21;let tot=0;
+HS.forEach(h=>{const p=val(h.c);let m=0;
+if(p>21)m=0;else if(h.natural)m=dn?1:2.5;else if(dn)m=0;else if(d>21||p>d)m=2;else if(p==d)m=1;
+tot+=Math.floor(h.bet*m);h.res=m==0?(p>21?'Dépassé':'Perdu'):m==1?'Égalité':'Gagné'});
+bjOn=false;const st=HS.reduce((a,h)=>a+h.bet,0);if(tot)pay(tot);bjPaint();bjBtns(false);const dl=$('#deal');if(dl)dl.disabled=false;
+const net=tot-st;msg(net>0?'Gagné +'+net+' 🪙':net==0?'Égalité':'Perdu −'+(-net)+' 🪙',net>0?true:net==0?undefined:false)}
 go('menu');
 </script></body></html>
